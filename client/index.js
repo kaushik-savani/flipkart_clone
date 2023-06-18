@@ -15,6 +15,7 @@ dotenv.config();
 app.use(cors());
 app.use(bodyParser.json({extended: true}));
 app.use(bodyParser.urlencoded({extended: true}));
+router.options('*', cors());
 app.use('/', router);
 
 const USERNAME = process.env.DB_USERNAME;
