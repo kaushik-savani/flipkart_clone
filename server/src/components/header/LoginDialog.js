@@ -1,6 +1,6 @@
 import { Dialog, Box, TextField, Typography, Button, styled } from '@mui/material'
 import { useState, useContext } from 'react'
-import { AuthenticateUser } from '../../service/api'
+import { AuthenticateLogin, AuthenticateUser } from '../../service/api'
 import { DataContext } from '../../context/DataProvider'
 
 const AccountInitialValues = {
@@ -23,14 +23,23 @@ const SignupInitialValue = {
   Password: '',
   Phone: ''
 }
+
+const LoginIntitialValue = {
+  LoginName: '',
+  Password: ''
+}
+
 const LoginDialog = ({open,setOpen}) => {
 
   const [account, setAccount] = useState(AccountInitialValues.login);
   const [signup, setSignup] = useState(SignupInitialValue);
+  const [login, setlogin] = useState(LoginIntitialValue);
+  const [error, setError] = useState(false);
   const {setAccountName} = useContext(DataContext);
   
   const HandleClose = () =>{
     setOpen(false);
+    setError(false);
     setAccount(AccountInitialValues.login);
   }
   const changeAccount = () =>{
@@ -40,6 +49,20 @@ const LoginDialog = ({open,setOpen}) => {
   const OnInputChange = (e) =>{
     setSignup({...signup,[e.target.name]:e.target.value});
     console.log(signup);
+  }
+
+  const OnValueChange = (e) =>{
+    setlogin({...login,[e.target.name]: e.target.value});
+  }
+
+  const LoginUser = async() =>{
+  let response = await AuthenticateLogin(login);
+   if(response.status === 200){
+    HandleClose();
+    setAccountName(response.data.data.FirstName);
+   }else{
+    setError(true);
+   }
   }
 
   const SignupUser = async()=>{
@@ -59,10 +82,11 @@ const LoginDialog = ({open,setOpen}) => {
           { 
           (account.view==='Login')?
             <DialogRight>
-              <TextField variant="standard" label="Enter Email/Mobile number" />
-              <TextField variant="standard" label="Enter Password" />
+              <TextField variant="standard" onChange={(e)=>OnValueChange(e)} name='LoginName' label="Enter Username" />
+              {error && <Error>Please enter valid username or password</Error>}
+              <TextField variant="standard" onChange={(e)=>OnValueChange(e)} name='Password' label="Enter Password" />
               <Text>By continuing, you agree to Flipkart's Terms of Use and Privacy Policy.</Text>
-              <LoginButton>Login</LoginButton>
+              <LoginButton onClick={LoginUser}>Login</LoginButton>
               <Typography style={{textAlign: 'center', color:'#878787'}}>OR</Typography>
               <RequestOtp>Request OTP</RequestOtp>
               <CreateAccount onClick={changeAccount}>New to Flipkart? Create an account</CreateAccount>
@@ -145,3 +169,10 @@ const Component = styled(Box)`
     font-weignt: 600;
     text-align: center;
   `;
+
+  const Error = styled(Typography)`
+    font-size: 10px;
+    color: #ff6161;
+    line-height: 0;
+    font-weight: 600;
+  `
